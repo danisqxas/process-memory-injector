@@ -26,4 +26,3 @@ Script en Python para registrar y analizar la actividad del usuario en sistemas 
 ```bash
 python User_Activity_V1.1.py
 
-```bash

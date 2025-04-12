@@ -1,45 +1,39 @@
-## PayloadInject 🚀
+# 🧠 Aerthex Scripts
 
-![status](https://img.shields.io/badge/status-active-brightgreen)
+Colección de herramientas y scripts desarrollados por Aerthex para entornos de ciberseguridad ofensiva, análisis forense y automatización. Diseñado con propósito, eficiencia y profesionalismo.
+
+---
+
+![status](https://img.shields.io/badge/status-maintained-brightgreen)
 ![license](https://img.shields.io/badge/license-MIT-blue)
-![language](https://img.shields.io/badge/language-C-blue)
-
-Script en C para realizar la inyección de DLLs en procesos Windows usando técnicas directas en memoria.  
-Ideal para entornos de laboratorio, pruebas controladas o aprendizaje de conceptos de ciberseguridad ofensiva.
+![focus](https://img.shields.io/badge/focus-cybersecurity-critical)
+![scripts](https://img.shields.io/badge/scripts-multiplatform-lightgrey)
 
 ---
 
-## 📚 Tabla de contenidos
+## ✨ ¿Qué vas a encontrar?
 
-- ✨ [Características](#características)
-- 📦 [Requisitos](#requisitos)
-- 🛠️ [Compilación](#compilación)
-- ⚙️ [Ejecución](#ejecución)
-- 🖼️ [Vista previa](#vista-previa)
-- 📫 [Contacto](#contacto)
-- ⚠️ [Disclaimer](#disclaimer)
+- 🛠️ Scripts ofensivos para pentesting (C, Bash, Python).
+- 🧪 Herramientas de prueba de concepto (PoC).
+- 🖥️ Utilidades para Windows, Unix y más.
+- 📁 Estructura modular y comentada.
 
 ---
 
-## ✨ Características
+## 📂 Organización
 
-- Inyección de DLL sin escribir en disco.
-- Uso de APIs nativas de Windows.
-- Código modular y comentado.
-- Funcional para entornos de pruebas controladas.
-
----
-
-## 📦 Requisitos
-
-- Windows 10 o superior.
-- DLL de prueba (creada por vos o personalizada).
-- MinGW (o Visual Studio) para compilar.
+| Categoría | Descripción |
+|----------|-------------|
+| `network/` | Escaneos, conexiones, sniffing |
+| `windows/` | Batches, exploits para entornos Windows |
+| `payloads/` | Inyecciones en memoria y otras técnicas |
+| `utils/` | Scripts varios de soporte o limpieza |
 
 ---
 
-## 🛠️ Compilación
+## 🚀 Ejemplo de uso
 
 ```bash
-x86_64-w64-mingw32-gcc PayloadInject.c -o injector.exe
+# Dentro de /network/
+python scan_hosts.py 192.168.1.0/24
 

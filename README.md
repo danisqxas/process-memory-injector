@@ -1,28 +1,68 @@
-# User Activity Monitor
+## PayloadInject 🚀
 
-Script en Python para registrar y analizar la actividad del usuario en sistemas Windows. Ideal para automatizar tareas de control de tiempo, monitoreo, auditoría o análisis de procesos inactivos.
 
----
-
-## Características
-
-- Detecta eventos de teclado y mouse.
-- Registra períodos de inactividad del usuario.
-- Guarda un historial detallado con marcas de tiempo.
-- Puede adaptarse fácilmente a diferentes propósitos (control de empleados, sesiones de estudio, análisis personal).
+Script en C para realizar la inyección de DLLs en procesos Windows usando técnicas directas en memoria.  
+Ideal para entornos de laboratorio, pruebas controladas o aprendizaje de conceptos de ciberseguridad ofensiva.
 
 ---
+## 📚 Tabla de contenidos
 
-## Requisitos
-
-- Python 3.x
-- Sistema operativo Windows
-- Permisos de administrador (en algunos entornos)
+- ✨ [Características](#características)
+- 📦 [Requisitos](#requisitos)
+- 🛠️ [Compilación](#compilación)
+- ⚙️ [Ejecución](#ejecución)
+- 🖼️ [Vista previa](#vista-previa)
+- 📫 [Contacto](#contacto)
+- ⚠️ [Disclaimer](#disclaimer)
 
 ---
+## ✨ Características
 
-## Ejemplo de ejecución
+- Inyección de DLL sin escribir en disco.
+- Uso de APIs nativas de Windows.
+- Código modular y comentado.
+- Funcional para laboratorios o pruebas locales.
+
+---
+## 📦 Requisitos
+
+- Windows 10 o superior.
+- MinGW o Visual Studio para compilar.
+- DLL personalizada a inyectar.
+
+
+---
+## 🛠️ Compilación
+
+Usá el siguiente comando:
 
 ```bash
-python User_Activity_V1.1.py
+x86_64-w64-mingw32-gcc PayloadInject.c -o injector.exe
+```
+
+---
+## ⚙️ Ejecución
+
+Ejecutá el binario generado como administrador e indicá el PID y ruta de la DLL:
+
+```bash
+injector.exe <PID> C:\ruta\a\la\dll.dll
+```
+
+---
+## 🖼️ Vista previa
+
+<img src="https://raw.githubusercontent.com/danisqxas/process-memory-injector/main/payload-preview.png" width="600px"/>
+
+---
+## 📫 Contacto
+
+- Twitter: [@daniiwnet](https://x.com/daniiwnet?s=21)
+- GitHub: [danisqxas](https://github.com/danisqxas)
+
+---
+## ⚠️ Disclaimer
+
+Este proyecto tiene fines exclusivamente educativos.  
+El autor no se hace responsable del uso indebido del código.
 

@@ -35,7 +35,7 @@ aerthex-scripts/
 
 - Python 3.x (para scripts en `.py`)
 - GCC (MinGW para Windows) para compilar C
-- Librerías Python: `requests`, `beautifulsoup4` (usadas por algunos scripts)
+- Librerías Python: `requests`, `beautifulsoup4`
 
 \`\`\`bash
 pip install -r requirements.txt
@@ -47,7 +47,7 @@ pip install -r requirements.txt
 
 ### 🔹 PayloadInject.c  
 > Inyección de DLL en procesos activos de Windows  
-> 📌 Lenguaje: C
+📌 Lenguaje: C
 
 **Compilación:**
 \`\`\`bash
@@ -80,7 +80,7 @@ python3 LeakScan-Script.py -e correo@ejemplo.com
 ---
 
 ### 🔹 User_Activity_V1.1.py  
-> Analiza actividad reciente del sistema (archivos abiertos, historial)
+> Analiza actividad reciente del sistema
 
 \`\`\`bash
 python3 User_Activity_V1.1.py
@@ -110,5 +110,5 @@ Este proyecto está licenciado bajo la [MIT License](LICENSE).
 ---
 
 <div align="center">
-    <strong>💻 Desarrollado con pasión por Aerthex</strong>
+  <strong>💻 Desarrollado con pasión por Aerthex</strong>
 </div>

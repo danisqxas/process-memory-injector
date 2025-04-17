@@ -1,39 +1,117 @@
-# PayloadInject.c — Payload de Inyección de Código para Simulación de Técnicas Post-Explotación
+# 🧬 Process Memory Injector — Inyector de Código en C para Windows
 
-Este archivo representa un payload técnico escrito en **lenguaje C** cuyo objetivo es **inyectar código dentro de procesos activos** en sistemas Windows. Su enfoque es **educativo y profesional**, diseñado para comprender cómo operan técnicas reales de post-explotación utilizadas por actores avanzados.
+Este repositorio contiene una prueba de concepto (PoC) escrita en lenguaje C para realizar técnicas avanzadas de inyección de código en procesos activos de sistemas Windows. Diseñado para profesionales en ciberseguridad ofensiva, auditorías técnicas y entornos de laboratorio controlado, esta herramienta simula tácticas reales de post-explotación utilizadas en campañas avanzadas.
 
----
-
-## Funcionalidades Implementadas
-
-Este payload está pensado para ejecutarse en diferentes modos según el argumento recibido. A continuación, se detallan sus funcionalidades:
-
-### 🔹 Modo `inject_payload`
-Inyecta un payload arbitrario (por ejemplo, shellcode) en un proceso específico utilizando:
-- `OpenProcess` para obtener acceso al proceso objetivo.
-- `VirtualAllocEx` para reservar memoria remota.
-- `WriteProcessMemory` para escribir el payload en la memoria del proceso remoto.
-- `CreateRemoteThread` para ejecutarlo.
-
-### 🔹 Modo `reverse_shell`
-Establece una shell inversa TCP hacia un servidor de escucha. Permite ejecución remota de comandos.
-
-### 🔹 Modo `dns_tunnel`
-Implementa un canal encubierto basado en peticiones DNS para exfiltración de datos.
-
-### 🔹 Modo `http_beacon`
-Envía información del sistema (hostname, usuario, PID, etc.) a un servidor remoto mediante solicitudes HTTP POST.
-
-### 🔹 Modo `list_processes`
-Enumera todos los procesos activos con su nombre, PID y ruta del ejecutable.
-
-### 🔹 Modo `explore_filesystem`
-Permite listar archivos y directorios en rutas específicas del sistema, simulando técnicas de reconocimiento post-explotación.
+![estado](https://img.shields.io/badge/estado-estable-brightgreen)
+![lenguaje](https://img.shields.io/badge/lenguaje-C-blue)
+![sistema](https://img.shields.io/badge/so-Windows-purple)
+![licencia](https://img.shields.io/badge/licencia-MIT-blue)
 
 ---
 
-## Uso
+## 📁 Estructura del Repositorio
 
-### Compilación
 ```bash
-x86_64-w64-mingw32-gcc PayloadInject.c -o injector.exe -lcurl
+process-memory-injector/
+├── payloads/
+│   └── c/
+│       └── process_injector/
+│           ├── PayloadInject.c         # Payload principal en C
+│           └── README.md               # Documentación técnica del payload
+├── .gitignore
+└── README.md
+```
+
+---
+
+## ⚙️ Requisitos Técnicos
+
+- Sistema Operativo: **Windows** (compilable desde Linux con MinGW)
+- Compilador C: `x86_64-w64-mingw32-gcc`
+- Librería: `libcurl`
+- Privilegios: Se requiere ejecución como **Administrador** para algunas operaciones
+
+---
+
+## 🧠 Funcionalidades del Payload
+
+Este payload se ejecuta con distintos modos (argumentos) para simular múltiples técnicas:
+
+- `inject_payload <pid>`: Inyección en procesos
+- `reverse_shell`: Shell inversa TCP
+- `dns_tunnel`: Exfiltración por DNS
+- `http_beacon`: Beacon HTTP con info del sistema
+- `list_processes`: Enumeración de procesos activos
+- `explore_filesystem <path>`: Reconocimiento del sistema de archivos
+- `beacon`: Beaconing en segundo plano
+
+---
+
+## 🛠️ Compilación
+
+```bash
+x86_64-w64-mingw32-gcc payloads/c/process_injector/PayloadInject.c -o injector.exe -lcurl
+```
+
+---
+
+## 🚀 Ejecución
+
+```bash
+injector.exe <modo> [argumento]
+```
+
+### 🔸 Ejemplos
+
+```bash
+injector.exe inject_payload 1234
+injector.exe reverse_shell
+injector.exe dns_tunnel
+injector.exe http_beacon
+injector.exe list_processes
+injector.exe explore_filesystem C:\Users
+injector.exe beacon
+```
+
+---
+
+## 🔍 ¿Por qué este proyecto es diferente?
+
+- 🧠 Código comentado y preparado para análisis técnico.
+- 🛠️ Enfoque modular para facilitar su extensión y reutilización.
+- 🧪 Simula técnicas reales en entornos de laboratorio ofensivo.
+- 🧰 Ideal para prácticas, desafíos técnicos, entrevistas o CTFs internos.
+
+---
+
+## ⚠️ Consideraciones Éticas
+
+Este repositorio tiene un propósito **exclusivamente educativo y de simulación**.
+
+- No está autorizado para entornos reales sin consentimiento explícito.
+- El autor no se responsabiliza por usos indebidos.
+- Usalo con responsabilidad, ética y criterio técnico.
+
+---
+
+## 📜 Licencia
+
+Este proyecto está licenciado bajo la [MIT License](LICENSE).
+
+---
+
+## 👤 Autor
+
+**Desarrollado por [@danisqxas](https://github.com/danisqxas)** — apasionado de la ciberseguridad ofensiva y el desarrollo técnico enfocado a PoCs y herramientas personalizadas.
+
+Podés seguir avances y publicaciones en:
+
+- GitHub: [@danisqxas](https://github.com/danisqxas)
+- Twitter/X: [@daniiwnet](https://x.com/daniiwnet?s=21)
+
+---
+
+<div align="center">
+  <strong>💉 Desarrollado con precisión quirúrgica y ética profesional.</strong><br>
+  <em>“Simulá al atacante para fortalecer la defensa.”</em>
+</div>

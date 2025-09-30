@@ -213,23 +213,26 @@ void detect_debugger() {
     }
 }
 
-// Keylogger (basic placeholder - requires platform-specific implementation)
+// Keylogger demonstration (requiere implementación específica por sistema)
 void keylogger() {
-    log_message("Keylogger activated (basic placeholder).");
-    // On Linux, you might try reading from /dev/input/event*
-    // On macOS, you might use the EventTap API
-    // This requires significant platform-specific code and often root privileges.
-    // Consider using libraries or system APIs for this.
-    log_message("Keylogging functionality is a placeholder and not fully implemented.");
+    /*
+     * Esta función sirve como punto de partida para implementar un registrador de
+     * pulsaciones de teclas. Dependiendo del sistema operativo, se pueden
+     * emplear APIs como /dev/input/event* en Linux o EventTap en macOS. Aquí
+     * simplemente documentamos la llamada sin capturar datos reales.
+     */
+    log_message("[Keylogger Demo] Se invocó la función de keylogger. La captura de teclas debe implementarse según la plataforma.");
 }
 
-// Screen Capture (basic placeholder - requires platform-specific implementation)
+// Screen capture demonstration (requiere implementación específica por sistema)
 void screen_capture() {
-    log_message("Screen capture activated (basic placeholder).");
-    // On Linux, you might use libraries like Xlib or tools like scrot or import.
-    // On macOS, you might use the Core Graphics framework (CGDisplayCreateImage).
-    // This requires platform-specific code.
-    log_message("Screen capture functionality is a placeholder and not fully implemented.");
+    /*
+     * Este módulo demuestra cómo estructurar una función de captura de pantalla.
+     * Para obtener una imagen real se pueden utilizar bibliotecas como Xlib,
+     * scrot o import en Linux, o la API Core Graphics en macOS. En esta
+     * versión educativa sólo se registra la invocación para su análisis.
+     */
+    log_message("[Screen Capture Demo] Se invocó la captura de pantalla. La captura real debe implementarse según la plataforma.");
 }
 
 // Process Enumeration (basic implementation)

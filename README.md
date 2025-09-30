@@ -1,140 +1,46 @@
-# 🧠 Process Memory Injector
+# 🤠 Agente Educativo de Ingeniería de Memoria
 
-**Process Memory Injector** es una herramienta avanzada de ciberseguridad ofensiva que permite la inyección de código en la memoria de procesos activos. Su propósito principal es educativo y de investigación, enfocándose en el análisis del comportamiento de procesos, técnicas de evasión y ejecución de payloads. Esta utilidad puede ser usada como laboratorio personal, entorno de pruebas o base para futuros desarrollos.
+Este repositorio contiene un agente en C diseñado para estudiar técnicas avanzadas de programación de sistemas y ciberseguridad de manera ética. Se centra en el procesamiento en memoria e integra múltiples módulos que se ejecutan en sistemas Unix/macOS. Cada función está implementada de forma segura y sus acciones se registran en un fichero de log para análisis.
 
-> “Aquel que domina la memoria, controla la ejecución.”
+## Objetivos
 
----
+- Proporcionar un ejemplo realista de cómo estructurar un agente modular que combine comunicación, ofuscación y monitorización de procesos.
+- Facilitar la comprensión de técnicas como el cifrado simple, la codificación, el análisis de procesos y la comunicación en red sin enviar tráfico real.
+- Servir como base para investigaciones y prácticas de programación segura.
 
-## 🌟 Objetivos del Proyecto
+## Módulos destacados
 
-Este proyecto fue creado con la intención de:
+- 🔐 **Cifrado XOR y codificación Base64:** utilidades para ofuscar y recuperar cadenas.
+- ⚙️ **Carga de configuración:** parámetros de dominio DNS, URL de baliza HTTP, dirección y puerto de la shell inversa, clave XOR, intervalo de balizas y ruta de log.
+- 🌐 **Túnel DNS:** codifica datos y construye la consulta DNS correspondiente; en lugar de exfiltrar, registra los detalles para su revisión.
+- 🛱 **Baliza HTTP:** prepara la estructura de una solicitud POST a un servidor de comando y control y registra la URL y el cuerpo.
+- 🕵️ **Detección de privilegios y depuradores:** comprueba permisos efectivos y detecta procesos de depuración leyendo `/proc/self/status`.
+- 💻 **Captura de teclado y pantalla:** incluye directrices y estructura para implementar estas funciones de forma segura según el sistema operativo.
+- 📋 **Enumeración de procesos:** recorre `/proc` en Linux y utiliza APIs de macOS para listar procesos en ejecución con su línea de comando.
+- 💾 **Inyección de payload:** muestra cómo copiar un payload de prueba a memoria y documentar su ubicación sin modificar procesos externos.
+- 🔄 **Shell inversa:** explica la estructura de una shell inversa, indicando cómo redirigir entradas y salidas a un servidor remoto sin establecer ninguna conexión.
 
-- Explorar el funcionamiento interno de los procesos y su gestión de memoria.
-- Desarrollar un entorno controlado para probar técnicas de inyección.
-- Servir como referencia técnica para estudiantes de seguridad ofensiva.
-- Fomentar la curiosidad y la investigación autodidacta en bajo nivel.
+## 🛠️ Compilación
 
----
-
-## 🚀 Características Principales
-
-- **Inyección remota de shellcode** en procesos activos.
-- **Payloads personalizables** en formato binario.
-- **Uso de llamadas nativas (WinAPI)** para mejor comprensión del sistema operativo.
-- **Código modular, claro y mantenible**.
-- **Listo para compilar sin dependencias externas.**
-- **Ejemplos incluidos** para comenzar fácilmente.
-- **Posibilidad de integración en otros proyectos mayores.**
-
----
-
-## 🧠 Conceptos Clave Aplicados
-
-- `OpenProcess`, `VirtualAllocEx`, `WriteProcessMemory`, `CreateRemoteThread`
-- Manejo de errores y validación de entradas
-- Conversión y manejo de shellcode
-- Control y manipulación de procesos a bajo nivel
-
----
-
-## 📂 Estructura del Repositorio
-
-```
-process-memory-injector/
-├── src/
-│   ├── injector.c           # Código principal del inyector
-│   └── utils.h              # Funciones auxiliares (memoria, errores)
-├── payloads/
-│   └── calc_payload.bin     # Ejemplo básico de shellcode
-├── examples/
-│   └── how_to_use.md        # Guía rápida de uso
-├── docs/
-│   ├── process_injection.md # Documentación técnica profunda
-│   └── ethics.md            # Uso responsable y advertencias
-├── LICENSE
-└── README.md
-```
-
----
-
-## ⚙️ Instalación y Compilación
-
-Requiere un compilador C compatible (MinGW, MSVC).
+Para compilar el agente en sistemas Linux o macOS:
 
 ```bash
-git clone https://github.com/danisqxas/process-memory-injector.git
-cd process-memory-injector
-gcc src/injector.c -o injector.exe
+gcc -o agent src/PayloadInject.c -lpthread
 ```
 
----
+## ▶️ Uso
 
-## 🧪 Ejemplo Rápido de Uso
+Ejecuta el binario indicando el módulo a probar. Por ejemplo:
 
 ```bash
-injector.exe 1234 payloads/calc_payload.bin
+./agent dns           # Demostración de túnel DNS
+./agent http          # Demostración de baliza HTTP
+./agent list          # Enumeración de procesos activos
+./agent inject        # Copia de payload en memoria local
 ```
 
-- `1234`: PID del proceso objetivo (puedes obtenerlo desde el administrador de tareas).
-- `payloads/calc_payload.bin`: Payload con código a inyectar.
+Consulta el archivo `docs/README.md` para información detallada de cada módulo.
 
----
+## ⚠️ Advertencia
 
-## 📌 Recomendaciones de Seguridad
-
-- Usar en máquinas virtuales o entornos de prueba.
-- Ejecutar con permisos administrativos si es necesario.
-- Validar el payload antes de inyectar para evitar fallos.
-
----
-
-## 🕵️ Casos de Uso Didáctico
-
-- Análisis de comportamiento del shellcode.
-- Laboratorios de malware (sin riesgos reales).
-- Comparación entre técnicas de inyección.
-- Estudio de detección por antivirus (AV Evasion).
-
----
-
-## ⚖️ Advertencia Ética
-
-> **Este software NO debe ser usado en sistemas ajenos o sin autorización.**
-
-Su propósito es únicamente **educativo, experimental y de investigación** en entornos controlados. El uso indebido puede constituir delito informático.
-
----
-
-## ✨ Futuras Mejoras (Roadmap)
-
-- Añadir soporte para técnicas como `Reflective DLL Injection`, `APC Queueing`, `Thread Hijacking`.
-- GUI simple en C# o Python para manejo visual.
-- Compatibilidad con Linux (via ptrace).
-- Módulos de evasión automatizada.
-
----
-
-## 👨‍💻 Sobre el Autor
-
-Proyecto creado y mantenido por **danisqxas** — entusiasta del desarrollo en bajo nivel, scripting, seguridad ofensiva y con una fuerte pasión por crear herramientas que enseñen y desafíen.
-
-> “Todo comenzó con curiosidad, y terminó en conocimiento.”
-
-GitHub: [https://github.com/danisqxas](https://github.com/danisqxas)
-
----
-
-## 📝 Licencia
-
-Este repositorio está bajo la licencia MIT. Eres libre de usarlo, modificarlo o distribuirlo citando al autor original.
-
----
-
-## ❤️ Agradecimientos
-
-- A la comunidad que comparte sin esperar nada a cambio.
-- A los que fallan, insisten, aprenden y mejoran.
-- A quienes buscan entender cómo funciona realmente el software por dentro.
-
-**Hacking no es destrucción. Hacking es comprensión.**
+El código de este repositorio tiene fines exclusivamente educativos. Está prohibido usarlo para comprometer sistemas o redes sin autorización. Usa este proyecto para aprender, investigar y reforzar tus conocimientos sobre programación de bajo nivel y ciberseguridad defensiva.

